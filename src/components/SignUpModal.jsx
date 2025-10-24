@@ -1,7 +1,7 @@
 // src/components/SignUpModal.jsx
 import { Box, Button, Dialog, Field, Fieldset, FileUpload, HStack, Icon, Input, Portal, Separator, Text } from "@chakra-ui/react";
 import { PasswordInput } from "./ui/password-input";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { signUp } from "../services/auth_sign_up"; 
 import { FaX } from "react-icons/fa6";
 import { firebaseErrorMessages } from "../config/firebaseError";
@@ -9,6 +9,7 @@ import GoogleLoginButton from "./GoogleLoginButton";
 import { uploadAvatar } from "../services/storage";
 import { updateProfile } from "firebase/auth";
 import { LuUpload } from "react-icons/lu";
+import { AuthContext } from "../contexts/AuthContext";
 
 export default function SignUpModal() {
   // TODO: 이메일, 비밀번호, 비밀번호 확인, 에러 상태 생성
@@ -18,7 +19,9 @@ export default function SignUpModal() {
   const [passwordConfirm, setPasswordConfirm] = useState(""); 
   const [error, setError] = useState(""); 
   const [avatarFile, setAvatarFile] = useState(null); // * 추가
-
+  
+  const { setUser } = useContext(AuthContext);
+  
   const handleSignUp = async (e) => {
     e.preventDefault();
 
@@ -31,10 +34,12 @@ export default function SignUpModal() {
     try {
       const user = await signUp(email, password)
       console.log("회원가입 성공:", user)
+      let photoURL = null;
       if (avatarFile) { // * 추가
-        const photoURL = await uploadAvatar(user.uid, avatarFile)
-        await  updateProfile(user, {photoURL})
+        photoURL = await uploadAvatar(user.uid, avatarFile) // 변수가 const로 되어있어서 updateProfile에 url이 변경되지 않는다.
+        await updateProfile(user, {photoURL})
       }
+      setUser({ ...user, photoURL });
       setOpen(false)
       setEmail("")
       setPassword("")
