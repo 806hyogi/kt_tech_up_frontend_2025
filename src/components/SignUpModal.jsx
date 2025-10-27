@@ -12,6 +12,7 @@ import { LuUpload } from "react-icons/lu";
 import { useForm } from "react-hook-form";
 import {z} from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AuthContext } from "../contexts/AuthContext";
 
 // TODO : zod 스키마 정의
 const signUpSchema = z.object({
@@ -47,6 +48,7 @@ export default function SignUpModal() {
   })
 
   // TODO : 함수 수정 - 파라미터 포함
+  const { setUser } = useContext(AuthContext);
   const onSubmit = async (data) => {
     setFirebaseError("")
     // try-catch로 signUp 함수 호출
@@ -55,10 +57,11 @@ export default function SignUpModal() {
       console.log("회원가입 성공:", user)
       let photoURL = null;
       if (avatarFile) { // * 추가
-        photoURL = await uploadAvatar(user.uid, avatarFile) // 변수가 const로 되어있어서 updateProfile에 url이 변경되지 않는다.
+        photoURL = await uploadAvatar(user.uid, avatarFile)
         await updateProfile(user, {photoURL})
       }
-      setUser({ ...user, photoURL });
+      setUser({ ...user });
+      // setUser(user);
       setOpen(false)
       reset();
       setAvatarFile(null)
